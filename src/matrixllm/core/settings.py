@@ -1,11 +1,23 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+def _get_env_with_ollabridge_fallback(primary: str, ollabridge_alias: str, default: str = "") -> str:
+    """Get env var with fallback to ollabridge-compatible alias (OLLAS_* prefix)."""
+    return os.getenv(primary) or os.getenv(ollabridge_alias) or default
+
+
 class Settings(BaseSettings):
-    """Runtime configuration loaded from environment and optional .env file."""
+    """Runtime configuration loaded from environment and optional .env file.
+
+    Supports ollabridge compatibility with OLLAS_* prefixed environment variables:
+      - OLLAS_API_KEY -> API_KEYS
+      - OLLAS_BASE_URL -> Client base URL (http://localhost:11435/v1)
+      - OLLAS_MODEL -> DEFAULT_MODEL
+    """
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -17,7 +29,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
 
     # Auth (comma-separated API keys). Works for Teams agents: Authorization: Bearer OR X-API-Key
-    API_KEYS: str = "dev-key-change-me"
+    # Also supports OLLAS_API_KEY for ollabridge compatibility
+    API_KEYS: str = _get_env_with_ollabridge_fallback("API_KEYS", "OLLAS_API_KEY", "dev-key-change-me")
 
     # Rate limiting (slowapi syntax)
     RATE_LIMIT: str = "60/minute"
@@ -27,7 +40,8 @@ class Settings(BaseSettings):
     OLLAMA_CHAT_PATH: str = "/api/chat"
     OLLAMA_EMBED_PATH: str = "/api/embeddings"
 
-    DEFAULT_MODEL: str = "deepseek-r1"
+    # Model defaults (also supports OLLAS_MODEL for ollabridge compatibility)
+    DEFAULT_MODEL: str = _get_env_with_ollabridge_fallback("DEFAULT_MODEL", "OLLAS_MODEL", "deepseek-r1")
     DEFAULT_EMBED_MODEL: str = "nomic-embed-text"
 
     # --- Provider: OpenAI-compatible upstream (OpenAI, Azure OpenAI compat, OpenRouter, vLLM OpenAI server, etc.) ---
@@ -65,9 +79,30 @@ class Settings(BaseSettings):
     DATA_DIR: Path = Path.home() / ".matrixllm"
     DATABASE_URL: str | None = None
 
-    # ---- Backward compatibility aliases (read old envs if present) ----
-    # If user still has matrixllm_* envs, they can keep working via .env updates manually.
-    # (We don't auto-map to keep behavior explicit.)
+    @property
+    def KEYS_FILE(self) -> Path:
+        return self.DATA_DIR / "keys.json"
+
+    # ---- Ollabridge compatibility (client-side aliases) ----
+    # These are used by external clients (notebooks, scripts) for ollabridge compatibility
+    # OLLAS_BASE_URL is an alias for the client to connect to MatrixLLM
+    # OLLAS_API_KEY is handled above via _get_env_with_ollabridge_fallback
+
+    @property
+    def OLLAS_BASE_URL(self) -> str:
+        """Ollabridge-compatible base URL for clients."""
+        return os.getenv("OLLAS_BASE_URL") or f"http://localhost:{self.PORT}/v1"
+
+    @property
+    def OLLAS_API_KEY(self) -> str:
+        """Ollabridge-compatible API key (returns the first configured key)."""
+        keys = self.API_KEYS.split(",")
+        return keys[0].strip() if keys else ""
+
+    @property
+    def OLLAS_MODEL(self) -> str:
+        """Ollabridge-compatible default model."""
+        return os.getenv("OLLAS_MODEL") or self.DEFAULT_MODEL
 
 
 settings = Settings()

@@ -103,6 +103,11 @@ def _dashboard(host: str, port: int, public_url: str | None, key: str, model: st
 [bold]Node join token:[/bold]  {join_token}
 [dim]Example node command:[/dim]
 [dim]  matrixllm-node join --control {local_url} --token {join_token}[/dim]
+
+[bold cyan]Ollabridge compatible:[/bold cyan]
+[dim]  OLLAS_BASE_URL={local_url}/v1[/dim]
+[dim]  OLLAS_API_KEY={key}[/dim]
+[dim]  OLLAS_MODEL={model}[/dim]
 """
 
     if public_url:
@@ -148,9 +153,12 @@ def start(
 
     # 4) Auth precedence:
     #    - Prefer env var API_KEYS
+    #    - Then OLLAS_API_KEY (ollabridge compatibility)
     #    - Then .env (best-effort)
     #    - Then settings.API_KEYS (last resort; may have been instantiated before .env is read)
     configured_keys = (os.getenv("API_KEYS") or "").strip()
+    if not configured_keys:
+        configured_keys = (os.getenv("OLLAS_API_KEY") or "").strip()  # ollabridge compat
     if not configured_keys:
         configured_keys = (_read_api_keys_from_dotenv() or "").strip()
     if not configured_keys:

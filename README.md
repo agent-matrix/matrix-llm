@@ -4,14 +4,14 @@
 
 # MatrixLLM
 
-**OpenAI-compatible multi-provider LLM router  with optional relay nodes.**
+**OpenAI-compatible multi-provider LLM router with optional relay nodes.**
 
 [![PyPI version](https://badge.fury.io/py/matrixllm.svg)](https://badge.fury.io/py/matrixllm)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-[Quick Start](#-60-second-start) | [Multi-Provider Routing](#-multi-provider-routing) | [Distributed Compute](#-distributed-compute-relay-nodes) | [API Reference](#-api-reference)
+[Quick Start](#-quick-start-for-beginners) | [How It Works](#-how-it-works) | [Multi-Provider Routing](#-multi-provider-routing) | [OllaBridge Compatible](#-ollabridge-compatibility)
 
 </div>
 
@@ -19,129 +19,281 @@
 
 ## What is MatrixLLM?
 
-> **One gateway. Multiple providers. OpenAI-compatible API.**
+**MatrixLLM turns your computer into a private OpenAI-compatible API server.**
 
-MatrixLLM is an **OpenAI-compatible multi-provider LLM router** that lets you:
-
-- **Route to multiple providers** (OpenAI, Anthropic, Gemini, watsonx, local Ollama) through a single API
-- **Use namespaced models** like `openai/gpt-4o-mini`, `anthropic/claude-3-5-sonnet-latest`, `google/gemini-1.5-pro`
-- **Connect distributed GPU nodes** (laptop, cloud, gaming PC) via relay fabric
-- **Teams agents compatibility** - works as a drop-in OpenAI endpoint
+Instead of sending your data to OpenAI, you can:
+- Run AI models **locally** on your own computer
+- Connect to **multiple providers** (OpenAI, Anthropic, Google, IBM) through one API
+- Use the **same code** you'd use with OpenAI
 
 ```
-              Your Apps (OpenAI SDK)
-                       |
-                       v
-               +---------------+
-               |   MatrixLLM   |  <-- Single endpoint
-               |   Gateway     |
-               +---------------+
-                 /    |    |    \
-                v     v    v     v
-           OpenAI  Claude Gemini MatrixNodes
-           (compat) (native) (native) (relay/local)
+Your App (uses OpenAI SDK)
+         |
+         v
++------------------+
+|    MatrixLLM     |  <-- Runs on localhost:11435
++------------------+
+    /     |     \
+   v      v      v
+Ollama  OpenAI  Anthropic  (etc.)
+(local) (cloud) (cloud)
 ```
 
 ---
 
-## Features
+## Quick Start for Beginners
 
-### Multi-Provider Routing
-- **OpenAI-compatible** upstream (OpenAI, Azure OpenAI, vLLM, OpenRouter)
-- **Anthropic** native API (Claude 3.5 Sonnet, Haiku)
-- **Google Gemini** native API (Gemini 1.5 Pro/Flash)
-- **IBM watsonx.ai** native API (Granite models)
-- **Local Ollama** and relay nodes (MatrixNode)
+### What You Need
 
-### Routing Modes
-- **Prefix routing**: `openai/gpt-4o-mini` routes to OpenAI, `anthropic/claude-3-5-sonnet-latest` to Anthropic
-- **Fallback routing**: Tries providers in chain until one succeeds
+- **Python 3.10 or newer** ([Download Python](https://www.python.org/downloads/))
+- **5 minutes** of your time
 
-### Distributed Compute (Relay Nodes)
-- **Nodes dial OUT** to your gateway (no port forwarding needed)
-- **Works from anywhere**: Colab, Kaggle, behind firewalls
-- **Auto load balancing** across healthy nodes
+### Step 1: Install MatrixLLM
 
-### Enterprise Ready
-- **API key authentication**
-- **Rate limiting**
-- **Request logging** with latency tracking
-- **Health checks** and monitoring
-
----
-
-## 60-Second Start
-
-### Step 1: Install
+Open your terminal (Command Prompt on Windows, Terminal on Mac/Linux) and run:
 
 ```bash
 pip install matrixllm
 ```
 
-### Step 2: Configure
-
-```bash
-cp .env.example .env
-# Edit .env with your provider API keys
-```
-
-Example `.env`:
-```env
-API_KEYS=dev-key-change-me
-
-# Local Ollama (default provider)
-OLLAMA_BASE_URL=http://localhost:11434
-DEFAULT_MODEL=deepseek-r1
-
-# Add other providers (optional)
-OPENAI_COMPAT_BASE_URL=https://api.openai.com/v1
-OPENAI_COMPAT_API_KEY=sk-...
-
-ANTHROPIC_API_KEY=sk-ant-...
-
-GEMINI_API_KEY=AIza...
-```
-
-### Step 3: Start
+### Step 2: Start the Server
 
 ```bash
 matrixllm start
 ```
 
-Or with uvicorn:
-```bash
-uvicorn matrixllm.api.main:app --host 0.0.0.0 --port 11435
+**That's it!** You'll see something like this:
+
+```
+╭─────────────────── Gateway Ready ───────────────────╮
+│                                                      │
+│ ✅ MatrixLLM is Online                              │
+│                                                      │
+│ Model:        deepseek-r1                           │
+│ Local API:    http://localhost:11435/v1             │
+│ Health:       http://localhost:11435/health         │
+│ Key:          sk-matrixllm-xY9kL2mN8pQ4rT6v        │
+│                                                      │
+│ Ollabridge compatible:                              │
+│   OLLAS_BASE_URL=http://localhost:11435/v1          │
+│   OLLAS_API_KEY=sk-matrixllm-xY9kL2mN8pQ4rT6v      │
+│   OLLAS_MODEL=deepseek-r1                           │
+│                                                      │
+╰──────────────────────────────────────────────────────╯
 ```
 
-### Step 4: Use It!
+**Important:** Copy the API key shown (starts with `sk-matrixllm-`). You'll need it!
+
+### Step 3: Use It in Your Code
+
+```python
+from openai import OpenAI
+
+# Connect to your local MatrixLLM server
+client = OpenAI(
+    base_url="http://localhost:11435/v1",
+    api_key="sk-matrixllm-YOUR-KEY-HERE"  # Use the key from Step 2
+)
+
+# Send a message to the AI
+response = client.chat.completions.create(
+    model="deepseek-r1",
+    messages=[{"role": "user", "content": "Hello! What can you do?"}]
+)
+
+# Print the AI's response
+print(response.choices[0].message.content)
+```
+
+### Step 4: Test with curl (Optional)
+
+You can also test from the command line:
+
+```bash
+curl http://localhost:11435/v1/chat/completions \
+  -H "Authorization: Bearer sk-matrixllm-YOUR-KEY-HERE" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-r1",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+---
+
+## How It Works
+
+### API Keys Explained
+
+When you run `matrixllm start`, it automatically generates a secure API key:
+
+```
+sk-matrixllm-xY9kL2mN8pQ4rT6vW1zA...
+```
+
+**What does this mean?**
+- `sk-` = "secret key" (standard prefix)
+- `matrixllm-` = identifies this as a MatrixLLM key
+- `xY9kL2mN...` = random secure characters
+
+**You can set your own key** by creating a `.env` file:
+
+```env
+API_KEYS=my-custom-api-key
+```
+
+Or use multiple keys (comma-separated):
+
+```env
+API_KEYS=key-for-app-1,key-for-app-2,key-for-testing
+```
+
+### Authentication Methods
+
+MatrixLLM accepts API keys in two ways:
+
+```python
+# Method 1: Authorization header (recommended)
+headers = {"Authorization": "Bearer sk-matrixllm-xxx"}
+
+# Method 2: X-API-Key header
+headers = {"X-API-Key": "sk-matrixllm-xxx"}
+```
+
+Both work identically. The OpenAI SDK uses Method 1 automatically.
+
+---
+
+## OllaBridge Compatibility
+
+MatrixLLM is **fully compatible** with [OllaBridge](https://github.com/ruslanmv/ollabridge). They use the same:
+
+- Port: `11435`
+- API structure: `/v1/chat/completions`, `/v1/embeddings`, `/v1/models`
+- Environment variables: `API_KEYS`, `OLLAMA_BASE_URL`, `DEFAULT_MODEL`
+
+### Using OLLAS_* Environment Variables
+
+MatrixLLM supports OllaBridge-style environment variables for seamless integration:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `OLLAS_API_KEY` | API key (alias for `API_KEYS`) | `sk-matrixllm-xxx` |
+| `OLLAS_BASE_URL` | Server URL | `http://localhost:11435/v1` |
+| `OLLAS_MODEL` | Default model (alias for `DEFAULT_MODEL`) | `deepseek-r1` |
+
+**Example `.env` file:**
+
+```env
+# OllaBridge-style configuration
+OLLAS_API_KEY=sk-matrixllm-your-key-here
+OLLAS_BASE_URL=http://localhost:11435/v1
+OLLAS_MODEL=deepseek-r1
+```
+
+**Example Python code:**
+
+```python
+import os
+from openai import OpenAI
+
+# Works with both MatrixLLM and OllaBridge
+client = OpenAI(
+    base_url=os.getenv("OLLAS_BASE_URL", "http://localhost:11435/v1"),
+    api_key=os.getenv("OLLAS_API_KEY", "your-key-here"),
+)
+
+response = client.chat.completions.create(
+    model=os.getenv("OLLAS_MODEL", "deepseek-r1"),
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+```
+
+### Switching Between MatrixLLM and OllaBridge
+
+Since both projects are compatible, you can switch freely:
+
+```bash
+# Using MatrixLLM
+pip install matrixllm
+matrixllm start
+
+# Using OllaBridge (same API!)
+pip install ollabridge
+ollabridge start
+```
+
+Your application code stays exactly the same!
+
+---
+
+## Multi-Provider Routing
+
+MatrixLLM can route requests to different AI providers based on the model name.
+
+### Supported Providers
+
+| Provider | Model Prefix | Example |
+|----------|--------------|---------|
+| Local Ollama | (no prefix) | `deepseek-r1`, `llama3` |
+| OpenAI | `openai/` | `openai/gpt-4o-mini` |
+| Anthropic | `anthropic/` | `anthropic/claude-3-5-sonnet-latest` |
+| Google Gemini | `google/` | `google/gemini-1.5-pro` |
+| IBM watsonx | `ibm/` | `ibm/granite-3-8b-instruct` |
+
+### Setup Multi-Provider
+
+Create a `.env` file with your API keys:
+
+```env
+# Your MatrixLLM API key
+API_KEYS=my-secure-key
+
+# OpenAI (optional)
+OPENAI_COMPAT_BASE_URL=https://api.openai.com/v1
+OPENAI_COMPAT_API_KEY=sk-...
+
+# Anthropic (optional)
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Google Gemini (optional)
+GEMINI_API_KEY=AIza...
+
+# IBM watsonx (optional)
+WATSONX_BASE_URL=https://us-south.ml.cloud.ibm.com
+WATSONX_API_KEY=...
+WATSONX_PROJECT_ID=...
+```
+
+### Use Different Providers
 
 ```python
 from openai import OpenAI
 
 client = OpenAI(
     base_url="http://localhost:11435/v1",
-    api_key="dev-key-change-me"
+    api_key="my-secure-key"
 )
 
-# Route to local Ollama (default)
+# Use local Ollama (default)
 response = client.chat.completions.create(
     model="deepseek-r1",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 
-# Route to OpenAI (prefix routing)
+# Use OpenAI
 response = client.chat.completions.create(
     model="openai/gpt-4o-mini",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 
-# Route to Anthropic (prefix routing)
+# Use Anthropic Claude
 response = client.chat.completions.create(
     model="anthropic/claude-3-5-sonnet-latest",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 
-# Route to Gemini (prefix routing)
+# Use Google Gemini
 response = client.chat.completions.create(
     model="google/gemini-1.5-pro",
     messages=[{"role": "user", "content": "Hello!"}]
@@ -150,138 +302,117 @@ response = client.chat.completions.create(
 
 ---
 
-## Multi-Provider Routing
-
-### Prefix Routing (Default)
-
-Use namespaced model IDs to route to specific providers:
-
-| Model ID | Routes To |
-|----------|-----------|
-| `deepseek-r1` | Local Ollama / MatrixNode |
-| `matrixnode/llama3.1` | MatrixNode (relay/local) |
-| `openai/gpt-4o-mini` | OpenAI-compatible endpoint |
-| `anthropic/claude-3-5-sonnet-latest` | Anthropic API |
-| `google/gemini-1.5-pro` | Google Gemini API |
-| `ibm/granite-3-8b-instruct` | IBM watsonx.ai |
-
-### Fallback Routing
-
-Set `ROUTING_MODE=fallback` to try providers in order:
-
-1. MatrixNode (local/relay)
-2. OpenAI-compatible
-3. Anthropic
-4. Google Gemini
-5. IBM watsonx
-
----
-
 ## Distributed Compute (Relay Nodes)
 
-Add GPUs from anywhere without port forwarding:
+Add GPUs from anywhere without port forwarding. Nodes **dial out** to your gateway.
 
-### On Your Gateway
+### On Your Gateway (Control Plane)
 
 ```bash
 matrixllm start
-# Copy the enrollment token
+# Note the enrollment token shown
 ```
 
-### On Remote GPU/Machine
+### On Remote GPU/Machine (Node)
 
 ```bash
 pip install matrixllm
 
 matrixllm-node join \
   --control http://YOUR_GATEWAY_IP:11435 \
-  --token eyJ0eXAi...
+  --token YOUR_ENROLLMENT_TOKEN
 ```
-
-The node:
-- Auto-installs Ollama if needed
-- Auto-downloads models
-- **Dials OUT** to your gateway
-- Appears as available compute
 
 ### Use Cases
 
-- **Gaming PC at home**: Join from anywhere
-- **Free Colab GPUs**: No port forwarding needed
-- **Cloud instances**: Auto load balancing
+- **Gaming PC at home**: Join your gateway from anywhere
+- **Free Colab/Kaggle GPUs**: No port forwarding needed
+- **Cloud instances**: Auto load balancing across nodes
 
 ---
 
 ## API Reference
 
-### Core Endpoints (OpenAI-compatible)
+### Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Gateway health + provider count |
-| `/v1/chat/completions` | POST | Chat completions |
-| `/v1/embeddings` | POST | Generate embeddings |
-| `/v1/models` | GET | List available models (from all providers) |
+| Endpoint | Method | Auth Required | Description |
+|----------|--------|---------------|-------------|
+| `/health` | GET | No | Check if server is running |
+| `/v1/models` | GET | Yes | List available models |
+| `/v1/chat/completions` | POST | Yes | Generate chat responses |
+| `/v1/embeddings` | POST | Yes | Generate text embeddings |
 
-### Admin Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/admin/recent` | GET | Recent request logs |
-| `/admin/runtimes` | GET | Connected relay nodes |
-| `/admin/enroll` | POST | Create enrollment token |
-
-### Example Requests
+### Quick Examples
 
 ```bash
-# Health check
+# Check health (no auth needed)
 curl http://localhost:11435/health
 
 # List models
-curl -H "Authorization: Bearer dev-key-change-me" \
+curl -H "Authorization: Bearer YOUR-KEY" \
   http://localhost:11435/v1/models
 
 # Chat completion
 curl -X POST http://localhost:11435/v1/chat/completions \
-  -H "Authorization: Bearer dev-key-change-me" \
+  -H "Authorization: Bearer YOUR-KEY" \
   -H "Content-Type: application/json" \
-  -d '{
-    "model": "anthropic/claude-3-5-sonnet-latest",
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
+  -d '{"model": "deepseek-r1", "messages": [{"role": "user", "content": "Hi!"}]}'
 ```
 
 ---
 
-## Configuration
+## CLI Commands
 
-### Environment Variables
+```bash
+# Start the server
+matrixllm start
+
+# Start with options
+matrixllm start --port 8080 --model llama3
+
+# Show LAN URLs (for other devices on your network)
+matrixllm start --lan
+
+# Create public URL (via ngrok)
+matrixllm start --share
+
+# Check system health
+matrixllm doctor
+
+# List available models
+matrixllm models --api-key YOUR-KEY
+
+# Test chat
+matrixllm test-chat "Hello!" --api-key YOUR-KEY
+```
+
+---
+
+## Configuration Reference
+
+### All Environment Variables
 
 ```env
-# Server
-PORT=11435
+# === Server ===
+PORT=11435                    # Server port
+HOST=0.0.0.0                  # Bind address
 CORS_ORIGINS=http://localhost:5173,http://localhost:3000
 
-# Authentication
-API_KEYS=dev-key-change-me
+# === Authentication ===
+API_KEYS=dev-key-change-me    # Comma-separated API keys
 
-# Rate Limiting
-RATE_LIMIT=60/minute
+# === Rate Limiting ===
+RATE_LIMIT=60/minute          # Requests per minute
 
-# Local Ollama
+# === Local Ollama ===
 OLLAMA_BASE_URL=http://localhost:11434
 DEFAULT_MODEL=deepseek-r1
 DEFAULT_EMBED_MODEL=nomic-embed-text
 
-# Routing
-ROUTING_MODE=prefix  # prefix | fallback
+# === Routing ===
+ROUTING_MODE=prefix           # prefix | fallback
 
-# Relay Fabric
-RELAY_ENABLED=true
-ENROLLMENT_SECRET=dev-enroll-change-me
-LOCAL_RUNTIME_ENABLED=true
-
-# Providers (add API keys for those you want)
+# === Multi-Provider (Optional) ===
 OPENAI_COMPAT_BASE_URL=https://api.openai.com/v1
 OPENAI_COMPAT_API_KEY=
 
@@ -292,60 +423,57 @@ GEMINI_API_KEY=
 WATSONX_BASE_URL=https://us-south.ml.cloud.ibm.com
 WATSONX_API_KEY=
 WATSONX_PROJECT_ID=
+
+# === Relay Fabric ===
+RELAY_ENABLED=true
+ENROLLMENT_SECRET=dev-enroll-change-me
+LOCAL_RUNTIME_ENABLED=true
+
+# === OllaBridge Compatibility ===
+# OLLAS_API_KEY=              # Alias for API_KEYS
+# OLLAS_BASE_URL=             # Client base URL
+# OLLAS_MODEL=                # Alias for DEFAULT_MODEL
 ```
 
 ---
 
-## CLI Commands
+## Troubleshooting
 
-### Gateway
+### "Connection refused" error
 
+Make sure the server is running:
 ```bash
-# Start gateway
 matrixllm start
-
-# Start with LAN URLs
-matrixllm start --lan
-
-# Start with public URL (ngrok)
-matrixllm start --share
-
-# Create enrollment token
-matrixllm enroll-create --ttl 3600
-
-# Diagnostics
-matrixllm doctor
-matrixllm models --api-key <key>
-matrixllm test-chat "Hello" --api-key <key>
 ```
 
-### Node
+### "Invalid API key" error
 
+Check that you're using the correct key:
 ```bash
-# Join a gateway
-matrixllm-node join --control http://gateway:11435 --token <token>
-
-# Cloud pairing (optional)
-matrixllm-node cloud-pair --cloud https://cloud-url.com
-matrixllm-node cloud-connect
+# The key is shown when you start the server
+matrixllm start
+# Look for: Key: sk-matrixllm-xxxxx
 ```
 
----
+### "Model not found" error
 
-## Teams Agents Compatibility
+1. Check available models:
+   ```bash
+   curl -H "Authorization: Bearer YOUR-KEY" http://localhost:11435/v1/models
+   ```
 
-MatrixLLM works as a drop-in replacement for OpenAI endpoints:
+2. For local models, make sure Ollama is running:
+   ```bash
+   ollama list
+   ```
 
-```python
-# In your Teams agent config
-base_url = "https://your-matrixllm-gateway/v1"
-api_key = "your-matrixllm-key"
-model = "anthropic/claude-3-5-sonnet-latest"  # or any other model
+### Server won't start
+
+Check if another service is using port 11435:
+```bash
+# Use a different port
+matrixllm start --port 8080
 ```
-
-Authentication supports:
-- `Authorization: Bearer <key>`
-- `X-API-Key: <key>`
 
 ---
 
@@ -356,14 +484,13 @@ Authentication supports:
 pip install -e ".[dev]"
 
 # Run tests
-pytest
+make test
 
 # Format code
-black src/matrixllm tests
-ruff check src/matrixllm
+make format
 
 # Type check
-mypy src/matrixllm
+make typecheck
 ```
 
 ---
@@ -378,7 +505,7 @@ Apache License 2.0 - see [LICENSE](LICENSE)
 
 - [FastAPI](https://fastapi.tiangolo.com/) - Async web framework
 - [httpx](https://www.python-httpx.org/) - Async HTTP client
-- [SQLModel](https://sqlmodel.tiangolo.com/) - Database ORM
+- [Ollama](https://ollama.com/) - Local LLM runtime
 - [Pydantic](https://pydantic.dev/) - Data validation
 
 ---
@@ -386,5 +513,7 @@ Apache License 2.0 - see [LICENSE](LICENSE)
 <div align="center">
 
 **MatrixLLM - Your unified gateway to all LLM providers**
+
+[Report Bug](https://github.com/agent-matrix/matrix-llm/issues) | [Request Feature](https://github.com/agent-matrix/matrix-llm/issues)
 
 </div>
