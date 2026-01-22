@@ -30,7 +30,7 @@ jobs:
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-      - name: 📦 Install OllaBridge
+      - name: 📦 Install matrixllm
         run: |
           uv pip install --system -e ".[dev]"
 
@@ -40,8 +40,8 @@ jobs:
 
       - name: 🔍 Code quality checks
         run: |
-          ruff check src/ollabridge/
-          black --check src/ollabridge/
+          ruff check src/matrixllm/
+          black --check src/matrixllm/
 
   integration-test:
     name: Integration Test with Ollama
@@ -62,7 +62,7 @@ jobs:
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-      - name: 📦 Install OllaBridge
+      - name: 📦 Install matrixllm
         run: |
           uv pip install --system -e ".[dev]"
 
@@ -94,9 +94,9 @@ jobs:
           OLLAMA_BASE_URL: "http://localhost:11434"
           DEFAULT_MODEL: "tinyllama"
         run: |
-          # Start OllaBridge in background
-          ollabridge start --model tinyllama &
-          OLLABRIDGE_PID=$!
+          # Start matrixllm in background
+          matrixllm start --model tinyllama &
+          matrixllm_PID=$!
 
           # Wait for startup
           sleep 10
@@ -124,12 +124,12 @@ jobs:
             echo "✓ Hello world test passed!"
           else
             echo "✗ Hello world test failed!"
-            kill $OLLABRIDGE_PID
+            kill $matrixllm_PID
             exit 1
           fi
 
           # Cleanup
-          kill $OLLABRIDGE_PID
+          kill $matrixllm_PID
 
   build:
     name: Build Distribution

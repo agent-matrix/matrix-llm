@@ -10,7 +10,7 @@ from matrixllm.providers.base import ModelInfo
 
 class MatrixNodeProvider:
     """
-    Wraps the existing OllaBridge relay/direct/local node fabric as a MatrixLLM provider.
+    Wraps the existing matrixllm relay/direct/local node fabric as a MatrixLLM provider.
     - Uses RuntimeRegistry + Router to pick a node.
     - Uses RelayHub for relay_link nodes.
     - Uses direct endpoint connector for direct_endpoint nodes.

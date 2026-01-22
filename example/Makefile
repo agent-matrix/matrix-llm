@@ -1,11 +1,11 @@
-.PHONY: help install run test clean check-ollama check-ollabridge check-setup start debug
+.PHONY: help install run test clean check-ollama check-matrixllm check-setup start debug
 
 # Default target
 help:
 	@echo ""
 	@echo "╭────────────────────────────────────────────────────╮"
 	@echo "│                                                    │"
-	@echo "│  🎯 OllaBridge Demo Client - Super Easy! 🎯       │"
+	@echo "│  🎯 matrixllm Demo Client - Super Easy! 🎯       │"
 	@echo "│                                                    │"
 	@echo "╰────────────────────────────────────────────────────╯"
 	@echo ""
@@ -18,7 +18,7 @@ help:
 	@echo ""
 	@echo "🛠️  Manual Setup (if needed):"
 	@echo ""
-	@echo "  1️⃣  make install    👈 Install OllaBridge"
+	@echo "  1️⃣  make install    👈 Install matrixllm"
 	@echo "  2️⃣  make run        👈 Start the demo"
 	@echo ""
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -29,7 +29,7 @@ help:
 	@echo "  make check-setup      - Check if everything is configured"
 	@echo "  make test             - Run connection tests"
 	@echo "  make check-ollama     - Is Ollama running?"
-	@echo "  make check-ollabridge - Is OllaBridge running?"
+	@echo "  make check-matrixllm - Is matrixllm running?"
 	@echo "  make clean            - Stop all servers"
 	@echo ""
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -44,23 +44,23 @@ help:
 	@echo "  That's it! Follow the instructions on screen 🎉"
 	@echo ""
 
-# Install OllaBridge
+# Install matrixllm
 install:
-	@echo "📦 Installing OllaBridge..."
-	@if python3 -c "import ollabridge" 2>/dev/null; then \
-		echo "✓ OllaBridge is already installed"; \
-		python3 -c "import ollabridge; print(f'Version: {ollabridge.__version__ if hasattr(ollabridge, \"__version__\") else \"installed\"}')" 2>/dev/null || echo "Version: installed"; \
+	@echo "📦 Installing matrixllm..."
+	@if python3 -c "import matrixllm" 2>/dev/null; then \
+		echo "✓ matrixllm is already installed"; \
+		python3 -c "import matrixllm; print(f'Version: {matrixllm.__version__ if hasattr(matrixllm, \"__version__\") else \"installed\"}')" 2>/dev/null || echo "Version: installed"; \
 	else \
-		echo "Installing OllaBridge via pip..."; \
+		echo "Installing matrixllm via pip..."; \
 		python3 -m pip install --upgrade pip; \
-		python3 -m pip install ollabridge; \
-		echo "✓ OllaBridge installed successfully"; \
+		python3 -m pip install matrixllm; \
+		echo "✓ matrixllm installed successfully"; \
 	fi
 	@echo ""
 	@echo "Next steps:"
 	@echo "  1. Ensure Ollama is running (ollama serve)"
 	@echo "  2. Pull a model (ollama pull deepseek-r1)"
-	@echo "  3. Start OllaBridge (ollabridge start)"
+	@echo "  3. Start matrixllm (matrixllm start)"
 	@echo "  4. Run: make run"
 	@echo ""
 
@@ -69,15 +69,15 @@ run:
 	@echo ""
 	@echo "╭───────────────────────────────────────────────────────╮"
 	@echo "│                                                       │"
-	@echo "│  🚀 OllaBridge Demo Client Starting...               │"
+	@echo "│  🚀 matrixllm Demo Client Starting...               │"
 	@echo "│                                                       │"
 	@echo "╰───────────────────────────────────────────────────────╯"
 	@echo ""
 	@echo "🔍 Pre-flight checks..."
 	@echo ""
-	@# Check if OllaBridge is running
+	@# Check if matrixllm is running
 	@if ! curl -s --connect-timeout 2 http://localhost:11435/health > /dev/null 2>&1; then \
-		echo "❌ ERROR: OllaBridge is NOT running!"; \
+		echo "❌ ERROR: matrixllm is NOT running!"; \
 		echo ""; \
 		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 		echo ""; \
@@ -85,13 +85,13 @@ run:
 		echo ""; \
 		echo "   Option 1 (Recommended - Automatic):"; \
 		echo "   ════════════════════════════════════"; \
-		echo "   make start    👈 Starts Ollama + OllaBridge automatically"; \
+		echo "   make start    👈 Starts Ollama + matrixllm automatically"; \
 		echo "   make run      👈 Then run this command again"; \
 		echo ""; \
 		echo "   Option 2 (Manual):"; \
 		echo "   ══════════════════"; \
 		echo "   Terminal 1: ollama serve"; \
-		echo "   Terminal 2: ollabridge start"; \
+		echo "   Terminal 2: matrixllm start"; \
 		echo "   Terminal 3: make run"; \
 		echo ""; \
 		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
@@ -103,12 +103,12 @@ run:
 	@# Check if Ollama is running
 	@if ! curl -s --connect-timeout 2 http://localhost:11434/api/tags > /dev/null 2>&1; then \
 		echo "⚠️  WARNING: Ollama may not be running"; \
-		echo "   OllaBridge needs Ollama to function properly"; \
+		echo "   matrixllm needs Ollama to function properly"; \
 		echo ""; \
 		echo "   Quick fix: make start"; \
 		echo ""; \
 	fi
-	@echo "✅ OllaBridge is running!"
+	@echo "✅ matrixllm is running!"
 	@echo ""
 	@echo "📋 Auto-configuring connection settings..."
 	@echo ""
@@ -118,7 +118,7 @@ run:
 		API_KEY="dev-key-change-me"; \
 	fi; \
 	echo "// Auto-generated config - DO NOT EDIT" > config.js; \
-	echo "window.OLLABRIDGE_CONFIG = {" >> config.js; \
+	echo "window.matrixllm_CONFIG = {" >> config.js; \
 	echo "  serverUrl: 'http://localhost:11435'," >> config.js; \
 	echo "  apiKey: '$$API_KEY'" >> config.js; \
 	echo "};" >> config.js; \
@@ -155,13 +155,13 @@ run:
 	@cd $$(pwd) && python3 -m http.server 3000 --bind 127.0.0.1
 
 # Run comprehensive tests
-test: check-ollama check-ollabridge
+test: check-ollama check-matrixllm
 	@echo ""
 	@echo "================================================"
 	@echo "  Running Demo Client Tests"
 	@echo "================================================"
 	@echo ""
-	@echo "Testing OllaBridge endpoints..."
+	@echo "Testing matrixllm endpoints..."
 	@echo ""
 	@echo "1. Health Check:"
 	@curl -s http://localhost:11435/health | python3 -m json.tool || echo "❌ Health check failed"
@@ -185,14 +185,14 @@ check-ollama:
 		exit 1; \
 	fi
 
-# Check if OllaBridge is running
-check-ollabridge:
-	@echo "Checking OllaBridge..."
+# Check if matrixllm is running
+check-matrixllm:
+	@echo "Checking matrixllm..."
 	@if curl -s http://localhost:11435/health > /dev/null 2>&1; then \
-		echo "✓ OllaBridge is running"; \
+		echo "✓ matrixllm is running"; \
 	else \
-		echo "❌ OllaBridge is not running"; \
-		echo "   Start it with: ollabridge start"; \
+		echo "❌ matrixllm is not running"; \
+		echo "   Start it with: matrixllm start"; \
 		exit 1; \
 	fi
 

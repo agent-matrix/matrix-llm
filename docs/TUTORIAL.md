@@ -81,7 +81,7 @@ Your App ──✅──> MatrixLLM ──> Routes to best available GPU
                    │
                    ▼
 ┌─────────────────────────────────────────────────────┐
-│  OLLABRIDGE GATEWAY (your computer)                 │
+│  matrixllm GATEWAY (your computer)                 │
 │  - Receives requests                                │
 │  - Routes to best GPU                               │
 │  - Returns results                                  │
@@ -351,7 +351,7 @@ import OpenAI from "openai";
 
 const client = new OpenAI({
   baseURL: "http://localhost:11435/v1",
-  apiKey: process.env.OLLABRIDGE_KEY
+  apiKey: process.env.matrixllm_KEY
 });
 
 const completion = await client.chat.completions.create({

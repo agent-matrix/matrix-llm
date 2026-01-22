@@ -1,5 +1,5 @@
 [project]
-name = "ollabridge"
+name = "matrixllm"
 version = "0.1.0"
 description = "Turn your PC into a private, OpenAI-compatible LLM provider in ~60 seconds"
 readme = "README.md"
@@ -66,11 +66,11 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ruslanmv/ollabridge"
-Documentation = "https://github.com/ruslanmv/ollabridge#readme"
-Repository = "https://github.com/ruslanmv/ollabridge"
-Issues = "https://github.com/ruslanmv/ollabridge/issues"
-Changelog = "https://github.com/ruslanmv/ollabridge/releases"
+Homepage = "https://github.com/ruslanmv/matrixllm"
+Documentation = "https://github.com/ruslanmv/matrixllm#readme"
+Repository = "https://github.com/ruslanmv/matrixllm"
+Issues = "https://github.com/ruslanmv/matrixllm/issues"
+Changelog = "https://github.com/ruslanmv/matrixllm/releases"
 
 [project.optional-dependencies]
 dev = [
@@ -83,9 +83,9 @@ dev = [
 ]
 
 [project.scripts]
-ollabridge = "ollabridge.cli.main:app"
-ollabridge-node = "ollabridge.node.cli:app"
-ollabridge-mcp = "ollabridge.mcp.server:main"
+matrixllm = "matrixllm.cli.main:app"
+matrixllm-node = "matrixllm.node.cli:app"
+matrixllm-mcp = "matrixllm.mcp.server:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -93,7 +93,7 @@ build-backend = "hatchling.build"
 
 # --- Hatchling src/ layout ---
 [tool.hatch.build.targets.wheel]
-packages = ["ollabridge"]
+packages = ["matrixllm"]
 
 [tool.hatch.build.targets.wheel.sources]
 "src" = ""

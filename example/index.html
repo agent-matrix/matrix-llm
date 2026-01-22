@@ -4,8 +4,8 @@
   <base target="_self">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OllaBridge Connect</title>
-  <meta name="description" content="Connect to your local OllaBridge instance in just 2 clicks" />
+  <title>matrixllm Connect</title>
+  <meta name="description" content="Connect to your local matrixllm instance in just 2 clicks" />
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
@@ -52,7 +52,7 @@
     <!-- Hero -->
     <header class="text-center mb-12">
       <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-        OllaBridge <span class="gradient-text">Connect</span>
+        matrixllm <span class="gradient-text">Connect</span>
       </h1>
       <p class="text-lg md:text-xl text-gray-600 mb-6">
         One endpoint. Any compute. Works with agents via MCP.
@@ -62,7 +62,7 @@
           <svg class="mr-1.5 h-2 w-2 text-indigo-400" fill="currentColor" viewBox="0 0 8 8">
             <circle cx="4" cy="4" r="3" />
           </svg>
-          Compatible with OllaBridge
+          Compatible with matrixllm
         </span>
       </div>
     </header>
@@ -73,10 +73,10 @@
       <div class="card-gradient rounded-xl p-6 shadow-sm border border-gray-200">
         <div class="flex items-center mb-4">
           <div class="flex items-center justify-center w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 font-bold mr-4">1</div>
-          <h3 class="text-xl font-semibold text-gray-800">Install OllaBridge</h3>
+          <h3 class="text-xl font-semibold text-gray-800">Install matrixllm</h3>
         </div>
         <p class="text-gray-600 mb-6">
-          Install OllaBridge on your local machine (and run it). This demo button just shows commands.
+          Install matrixllm on your local machine (and run it). This demo button just shows commands.
         </p>
         <button id="installBtn"
           class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition">
@@ -102,7 +102,7 @@
               placeholder="http://localhost:11435"
               value="http://localhost:11435">
           </div>
-          <p class="text-xs text-gray-500 mt-1">Tip: OllaBridge OpenAI base URL is <code>/v1</code></p>
+          <p class="text-xs text-gray-500 mt-1">Tip: matrixllm OpenAI base URL is <code>/v1</code></p>
         </div>
 
         <div class="mb-4">
@@ -115,7 +115,7 @@
               class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
               placeholder="dev-key-change-me">
           </div>
-          <p class="text-xs text-gray-500 mt-1">Matches <code>API_KEYS</code> in OllaBridge <code>.env</code></p>
+          <p class="text-xs text-gray-500 mt-1">Matches <code>API_KEYS</code> in matrixllm <code>.env</code></p>
         </div>
 
         <button id="connectBtn"
@@ -170,7 +170,7 @@
         </button>
       </div>
       <div id="consoleLog" class="console bg-gray-900 text-gray-200 p-4 rounded-lg h-52 overflow-y-auto mb-4">
-        <div class="text-green-400">> Ready to connect to OllaBridge...</div>
+        <div class="text-green-400">> Ready to connect to matrixllm...</div>
       </div>
     </div>
 
@@ -215,11 +215,11 @@
     <footer class="border-t border-gray-200 pt-8">
       <div class="text-center">
         <p class="text-sm text-gray-500 mb-4">
-          <a href="https://github.com/ruslanmv/ollabridge" class="text-indigo-600 hover:text-indigo-500 font-medium">
+          <a href="https://github.com/ruslanmv/matrixllm" class="text-indigo-600 hover:text-indigo-500 font-medium">
             <i class="fab fa-github mr-1"></i> Star us on GitHub
           </a>
         </p>
-        <p class="text-xs text-gray-400">Built with OllaBridge - OpenAI-compatible gateway for Ollama</p>
+        <p class="text-xs text-gray-400">Built with matrixllm - OpenAI-compatible gateway for Ollama</p>
       </div>
     </footer>
   </div>
@@ -336,7 +336,7 @@
     }
 
     function authHeaders() {
-      // OllaBridge accepts Authorization: Bearer <key>
+      // matrixllm accepts Authorization: Bearer <key>
       return {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
@@ -396,16 +396,16 @@
       addToConsole('  ollama pull llama3', 'white');
       addToConsole('  (or any other model you prefer)', 'white');
       addToConsole('> ', 'white');
-      addToConsole('> STEP 3: Install OllaBridge', 'yellow');
-      addToConsole('  pip install ollabridge', 'white');
+      addToConsole('> STEP 3: Install matrixllm', 'yellow');
+      addToConsole('  pip install matrixllm', 'white');
       addToConsole('> ', 'white');
-      addToConsole('> STEP 4: Start OllaBridge', 'yellow');
-      addToConsole('  ollabridge start', 'white');
+      addToConsole('> STEP 4: Start matrixllm', 'yellow');
+      addToConsole('  matrixllm start', 'white');
       addToConsole('> ', 'white');
       addToConsole('> STEP 5: Configure CORS (IMPORTANT!)', 'yellow');
       addToConsole('  Edit .env file and add:', 'white');
       addToConsole('  CORS_ORIGINS=http://localhost:3000', 'white');
-      addToConsole('  Then restart: ollabridge start', 'white');
+      addToConsole('  Then restart: matrixllm start', 'white');
       addToConsole('> ', 'white');
       addToConsole('> STEP 6: Click "Connect" above! ✨', 'green');
       addToConsole('> ═══════════════════════════════════════', 'blue');
@@ -421,7 +421,7 @@
         return;
       }
       if (!key) {
-        addToConsole('> Please enter an API key (matches API_KEYS in OllaBridge .env)', 'red');
+        addToConsole('> Please enter an API key (matches API_KEYS in matrixllm .env)', 'red');
         errorCountValue++; setErrorCount();
         return;
       }
@@ -461,13 +461,13 @@
         addToConsole('    Run: ollama serve', 'white');
         addToConsole('    Test: curl http://localhost:11434/api/tags', 'white');
         addToConsole('> ', 'white');
-        addToConsole('> ☐ Is OllaBridge running?', 'white');
-        addToConsole('    Run: ollabridge start', 'white');
+        addToConsole('> ☐ Is matrixllm running?', 'white');
+        addToConsole('    Run: matrixllm start', 'white');
         addToConsole('    Test: curl http://localhost:11435/health', 'white');
         addToConsole('> ', 'white');
         addToConsole('> ☐ Is CORS configured?', 'white');
         addToConsole('    Edit .env: CORS_ORIGINS=http://localhost:3000', 'white');
-        addToConsole('    Then: ollabridge start (restart)', 'white');
+        addToConsole('    Then: matrixllm start (restart)', 'white');
         addToConsole('> ', 'white');
         addToConsole('> ☐ Is this page served correctly?', 'white');
         addToConsole('    URL should be: http://localhost:3000', 'white');
@@ -501,7 +501,7 @@
         return;
       }
       if (!isConnected || !serverBase || !apiKey) {
-        addToConsole('> Not connected to OllaBridge', 'red');
+        addToConsole('> Not connected to matrixllm', 'red');
         errorCountValue++; setErrorCount();
         return;
       }
@@ -550,16 +550,16 @@
     });
 
     // Init
-    addToConsole('> Welcome to OllaBridge Connect!', 'blue');
+    addToConsole('> Welcome to matrixllm Connect!', 'blue');
 
     // Auto-fill from config.js if available
-    if (window.OLLABRIDGE_CONFIG) {
+    if (window.matrixllm_CONFIG) {
       addToConsole('> ✨ Auto-config detected!', 'green');
       addToConsole('> Pre-filling connection details...', 'blue');
 
       // Fill in the values
-      serverUrlInput.value = window.OLLABRIDGE_CONFIG.serverUrl || 'http://localhost:11435';
-      apiKeyInput.value = window.OLLABRIDGE_CONFIG.apiKey || 'dev-key-change-me';
+      serverUrlInput.value = window.matrixllm_CONFIG.serverUrl || 'http://localhost:11435';
+      apiKeyInput.value = window.matrixllm_CONFIG.apiKey || 'dev-key-change-me';
 
       addToConsole(`> Server URL: ${serverUrlInput.value}`, 'white');
       addToConsole(`> API Key: ${apiKeyInput.value.substring(0, 8)}...`, 'white');

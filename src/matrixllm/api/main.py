@@ -245,7 +245,7 @@ def create_app() -> FastAPI:
             return {"object": "list", "data": []}
 
     # ----------------------------
-    # Admin (keep from OllaBridge; still useful)
+    # Admin (keep from matrixllm; still useful)
     # ----------------------------
     @app.get("/admin/recent")
     async def admin_recent(_key: str = Depends(require_api_key)):

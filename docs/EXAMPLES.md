@@ -341,7 +341,7 @@ import OpenAI from "openai";
 
 const client = new OpenAI({
   baseURL: "http://localhost:11435/v1",
-  apiKey: process.env.OLLABRIDGE_KEY,
+  apiKey: process.env.matrixllm_KEY,
 });
 
 async function chat(prompt: string): Promise<string> {
@@ -459,21 +459,21 @@ import os
 from openai import OpenAI
 
 client = OpenAI(
-    base_url=os.getenv("OLLABRIDGE_BASE_URL", "http://localhost:11435/v1"),
-    api_key=os.getenv("OLLABRIDGE_API_KEY")
+    base_url=os.getenv("matrixllm_BASE_URL", "http://localhost:11435/v1"),
+    api_key=os.getenv("matrixllm_API_KEY")
 )
 
 response = client.chat.completions.create(
-    model=os.getenv("OLLABRIDGE_MODEL", "deepseek-r1"),
+    model=os.getenv("matrixllm_MODEL", "deepseek-r1"),
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
 
 **.env file:**
 ```env
-OLLABRIDGE_BASE_URL=https://your-gateway.com/v1
-OLLABRIDGE_API_KEY=sk-matrixllm-production-key
-OLLABRIDGE_MODEL=deepseek-r1
+matrixllm_BASE_URL=https://your-gateway.com/v1
+matrixllm_API_KEY=sk-matrixllm-production-key
+matrixllm_MODEL=deepseek-r1
 ```
 
 ### Error Handling

@@ -14,4 +14,4 @@ RUN pip install -U pip && pip install .
 
 EXPOSE 11343
 
-CMD ["python", "-m", "uvicorn", "ollabridge.api.main:app", "--host", "0.0.0.0", "--port", "11343"]
+CMD ["python", "-m", "uvicorn", "matrixllm.api.main:app", "--host", "0.0.0.0", "--port", "11343"]

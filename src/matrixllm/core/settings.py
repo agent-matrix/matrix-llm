@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str | None = None
 
     # ---- Backward compatibility aliases (read old envs if present) ----
-    # If user still has OLLABRIDGE_* envs, they can keep working via .env updates manually.
+    # If user still has matrixllm_* envs, they can keep working via .env updates manually.
     # (We don't auto-map to keep behavior explicit.)
 
 

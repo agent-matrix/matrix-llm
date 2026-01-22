@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest a new feature for OllaBridge
+about: Suggest a new feature for matrixllm
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''

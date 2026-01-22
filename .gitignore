@@ -47,8 +47,8 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-# OllaBridge specific
-.ollabridge/
+# matrixllm specific
+.matrixllm/
 *.db
 *.db-shm
 *.db-wal
