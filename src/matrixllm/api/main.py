@@ -11,12 +11,13 @@ from slowapi.util import get_remote_address
 from pydantic import BaseModel
 
 from matrixllm.core.settings import settings
-from matrixllm.core.security import require_api_key
+from matrixllm.core.security import require_auth
 from matrixllm.core.enrollment import create_join_token
 from matrixllm.db.database import init_db, session
 from matrixllm.db.models import RequestLog
 from matrixllm.api.state import build_state
 from matrixllm.api.relay import RelayHub, build_relay_router
+from matrixllm.api.pair import router as pair_router
 from matrixllm.core.registry import RuntimeNodeState
 
 from matrixllm.providers.openai_compat import OpenAICompatProvider
@@ -135,6 +136,9 @@ def create_app() -> FastAPI:
     if settings.RELAY_ENABLED:
         app.include_router(build_relay_router(registry=app.state.matrix.registry, hub=app.state.relay_hub))
 
+    # Pairing endpoints (for matrixshell local pairing)
+    app.include_router(pair_router)
+
     @app.get("/health")
     async def health():
         try:
@@ -155,7 +159,7 @@ def create_app() -> FastAPI:
     # OpenAI-compatible endpoints
     # ----------------------------
     @app.post("/v1/chat/completions")
-    async def chat_completions(req: ChatReq, request: Request, _key: str = Depends(require_api_key)) -> dict[str, Any]:
+    async def chat_completions(req: ChatReq, request: Request, _auth: str = Depends(require_auth)) -> dict[str, Any]:
         model = (req.model or settings.DEFAULT_MODEL)
         t0 = time.time()
         try:
@@ -198,7 +202,7 @@ def create_app() -> FastAPI:
             raise HTTPException(500, str(e))
 
     @app.post("/v1/embeddings")
-    async def embeddings(req: EmbeddingsReq, request: Request, _key: str = Depends(require_api_key)) -> dict[str, Any]:
+    async def embeddings(req: EmbeddingsReq, request: Request, _auth: str = Depends(require_auth)) -> dict[str, Any]:
         model = (req.model or settings.DEFAULT_EMBED_MODEL)
         t0 = time.time()
         try:
@@ -235,7 +239,7 @@ def create_app() -> FastAPI:
             raise HTTPException(500, str(e))
 
     @app.get("/v1/models")
-    async def list_models(response: Response, _key: str = Depends(require_api_key)):
+    async def list_models(response: Response, _auth: str = Depends(require_auth)):
         try:
             data = await app.state.policy_router.list_models()
             return {"object": "list", "data": data}
@@ -248,19 +252,19 @@ def create_app() -> FastAPI:
     # Admin (keep from matrixllm; still useful)
     # ----------------------------
     @app.get("/admin/recent")
-    async def admin_recent(_key: str = Depends(require_api_key)):
+    async def admin_recent(_auth: str = Depends(require_auth)):
         from sqlmodel import select
         with session() as s:
             rows = s.exec(select(RequestLog).order_by(RequestLog.ts.desc()).limit(200)).all()
             return {"recent": [r.model_dump() for r in rows]}
 
     @app.get("/admin/runtimes")
-    async def admin_runtimes(_key: str = Depends(require_api_key)):
+    async def admin_runtimes(_auth: str = Depends(require_auth)):
         nodes = await app.state.matrix.registry.list()
         return {"runtimes": [n.__dict__ for n in nodes]}
 
     @app.post("/admin/enroll")
-    async def admin_enroll(_key: str = Depends(require_api_key)):
+    async def admin_enroll(_auth: str = Depends(require_auth)):
         tok = create_join_token()
         return {"token": tok.token, "expires_at": tok.expires_at.isoformat()}
 

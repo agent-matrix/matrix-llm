@@ -14,6 +14,7 @@ from rich.table import Table
 
 from matrixllm.core.enrollment import create_join_token
 from matrixllm.core.settings import settings
+from matrixllm.core.pairing import pairing
 from matrixllm.utils.installer import (
     ensure_model,
     ensure_ollama_server_running,
@@ -88,9 +89,27 @@ def _write_env_key_if_missing(key: str) -> None:
     env_path.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
 
 
-def _dashboard(host: str, port: int, public_url: str | None, key: str, model: str, workers: int, join_token: str):
+def _dashboard(host: str, port: int, public_url: str | None, key: str, model: str, workers: int, join_token: str, auth_mode: str = "required", pairing_code: str | None = None):
     local_url = f"http://localhost:{port}"
-    msg = f"""
+
+    if auth_mode == "pairing":
+        msg = f"""
+[bold green]✅ MatrixLLM is Online[/bold green]
+
+[bold]Model:[/bold]        {model}
+[bold]Workers:[/bold]      {workers}
+[bold]Local API:[/bold]    {local_url}/v1
+[bold]Health:[/bold]       {local_url}/health
+[bold]Auth:[/bold]         pairing
+[bold]Pairing code:[/bold]  {pairing_code}
+[dim]Enter this code in MatrixShell to pair (code expires soon).[/dim]
+
+[bold]Node join token:[/bold]  {join_token}
+[dim]Example node command:[/dim]
+[dim]  matrixllm-node join --control {local_url} --token {join_token}[/dim]
+"""
+    else:
+        msg = f"""
 [bold green]✅ MatrixLLM is Online[/bold green]
 
 [bold]Model:[/bold]        {model}
@@ -123,6 +142,7 @@ def _dashboard(host: str, port: int, public_url: str | None, key: str, model: st
 def start(
     host: str = typer.Option("0.0.0.0", help="Bind host"),
     port: int = typer.Option(11435, help="Bind port"),
+    auth: str = typer.Option("required", "--auth", help="Auth mode: required|local-trust|pairing"),
     share: bool = typer.Option(False, "--share", help="Expose a public URL (best-effort)"),
     lan: bool = typer.Option(False, "--lan", help="Print LAN URL for other devices"),
     workers: int = typer.Option(1, "--workers", help="Worker processes (scalability hook)"),
@@ -178,6 +198,17 @@ def start(
     os.environ["API_KEYS"] = configured_keys
     settings.API_KEYS = configured_keys
 
+    # Auth mode (default is required; keeps current behavior)
+    os.environ["AUTH_MODE"] = auth
+    settings.AUTH_MODE = auth
+
+    pairing_code = None
+    if auth == "pairing":
+        # Generate a short pairing code on startup
+        pairing_code = pairing().reset_pair_code()
+        if host not in ("127.0.0.1", "localhost"):
+            console.print("[yellow]Warning: Pairing mode is intended for localhost only. Consider --host 127.0.0.1[/yellow]")
+
     # 5) Enrollment token: compute nodes join the control plane with this short-lived credential.
     join_token = create_join_token().token
 
@@ -196,7 +227,7 @@ def start(
         console.print("[yellow]⚠️  --reload forces --workers 1 (Uvicorn limitation).[/yellow]")
         workers = 1
 
-    _dashboard(host, port, public_url, key, model, workers, join_token)
+    _dashboard(host, port, public_url, key, model, workers, join_token, auth, pairing_code)
 
     # LAN mode: print URLs for other devices on the network
     if lan:
