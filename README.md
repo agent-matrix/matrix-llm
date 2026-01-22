@@ -166,15 +166,38 @@ Both work identically. The OpenAI SDK uses Method 1 automatically.
 
 ## OllaBridge Compatibility
 
-MatrixLLM is **fully compatible** with [OllaBridge](https://github.com/ruslanmv/ollabridge). They use the same:
+MatrixLLM is **fully compatible** with [OllaBridge](https://github.com/ruslanmv/ollabridge). Both projects share the same API interface, making it easy to switch between them or migrate your applications.
 
+### When to Use Each
+
+| Feature | OllaBridge | MatrixLLM |
+|---------|------------|-----------|
+| **Use Case** | Simple local-only proxy | Multi-provider enterprise router |
+| **Ollama Support** | Local only | Local + distributed nodes |
+| **Cloud Providers** | No | OpenAI, Anthropic, Google, IBM |
+| **Distributed Compute** | No | Yes (relay nodes) |
+| **Complexity** | Minimal | Full-featured |
+
+**Choose OllaBridge when:**
+- You only need local Ollama models
+- You want a lightweight, simple setup
+- You don't need cloud provider integration
+
+**Choose MatrixLLM when:**
+- You need multi-provider routing (OpenAI, Anthropic, Google, IBM)
+- You want distributed compute across multiple machines
+- You need enterprise features like load balancing and failover
+
+### Shared Configuration
+
+Both projects use the same:
 - Port: `11435`
 - API structure: `/v1/chat/completions`, `/v1/embeddings`, `/v1/models`
 - Environment variables: `API_KEYS`, `OLLAMA_BASE_URL`, `DEFAULT_MODEL`
 
 ### Using OLLAS_* Environment Variables
 
-MatrixLLM supports OllaBridge-style environment variables for seamless integration:
+MatrixLLM supports OllaBridge-style environment variables for seamless migration:
 
 | Variable | Description | Example |
 |----------|-------------|---------|
@@ -185,7 +208,7 @@ MatrixLLM supports OllaBridge-style environment variables for seamless integrati
 **Example `.env` file:**
 
 ```env
-# OllaBridge-style configuration
+# OllaBridge-compatible configuration
 OLLAS_API_KEY=sk-matrixllm-your-key-here
 OLLAS_BASE_URL=http://localhost:11435/v1
 OLLAS_MODEL=deepseek-r1
@@ -209,18 +232,18 @@ response = client.chat.completions.create(
 )
 ```
 
-### Switching Between MatrixLLM and OllaBridge
+### Migration Path
 
-Since both projects are compatible, you can switch freely:
+Switch between OllaBridge and MatrixLLM without changing your application code:
 
 ```bash
-# Using MatrixLLM
-pip install matrixllm
-matrixllm start
-
-# Using OllaBridge (same API!)
+# Start with OllaBridge (simple local setup)
 pip install ollabridge
 ollabridge start
+
+# Upgrade to MatrixLLM (when you need more features)
+pip install matrixllm
+matrixllm start
 ```
 
 Your application code stays exactly the same!
