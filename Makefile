@@ -18,10 +18,12 @@ VENV_PYTHON := .venv/bin/python3
 PYTHON := $(shell if [ -f $(VENV_PYTHON) ]; then echo $(VENV_PYTHON); else echo python3; fi)
 UV := uv
 PIP := pip
-PYTEST := pytest
-BLACK := black
-RUFF := ruff
-MYPY := mypy
+# Use venv tools if available, otherwise fall back to global
+VENV_BIN := .venv/bin
+PYTEST := $(shell if [ -f $(VENV_BIN)/pytest ]; then echo $(VENV_BIN)/pytest; else echo pytest; fi)
+BLACK := $(shell if [ -f $(VENV_BIN)/black ]; then echo $(VENV_BIN)/black; else echo black; fi)
+RUFF := $(shell if [ -f $(VENV_BIN)/ruff ]; then echo $(VENV_BIN)/ruff; else echo ruff; fi)
+MYPY := $(shell if [ -f $(VENV_BIN)/mypy ]; then echo $(VENV_BIN)/mypy; else echo mypy; fi)
 
 SRC_DIR := src/matrixllm
 TESTS_DIR := tests
