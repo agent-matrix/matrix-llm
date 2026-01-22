@@ -1,42 +1,82 @@
 # MatrixLLM Makefile
-# Professional build automation with uv support
-#
-# Quick start:
-#   make install    - Install MatrixLLM (ultra-fast with uv)
-#   make start      - Start the gateway
-#   make dev        - Start in development mode
-#   make mcp        - Start MCP server
+# Cross-platform (Linux/macOS + Windows via Git Bash/MSYS2 + WSL)
+# - Uses uv if available, otherwise falls back to pip
+# - Automatically creates a virtual environment (.venv) for uv installs
+# - Works even if you're on Windows (Git Bash) where venv paths differ
 
 .DEFAULT_GOAL := help
 
 # ================================
-# Variables
+# Platform detection + paths
 # ================================
 
-# Use venv Python if available, otherwise system Python
-VENV_PYTHON := .venv/bin/python3
-PYTHON := $(shell if [ -f $(VENV_PYTHON) ]; then echo $(VENV_PYTHON); else echo python3; fi)
+# If we're on Windows (MSYS/MinGW/Cygwin/Git Bash), venv scripts live in .venv/Scripts
+UNAME_S := $(shell uname -s 2>/dev/null || echo Unknown)
+IS_WINDOWS := $(shell echo "$(UNAME_S)" | grep -Eqi 'mingw|msys|cygwin' && echo 1 || echo 0)
+
+ifeq ($(IS_WINDOWS),1)
+  VENV_BIN := .venv/Scripts
+  VENV_PYTHON := $(VENV_BIN)/python.exe
+  PATHSEP := ;
+else
+  VENV_BIN := .venv/bin
+  VENV_PYTHON := $(VENV_BIN)/python3
+  PATHSEP := :
+endif
+
+# Prefer venv python if it exists, else system python
+PYTHON := $(shell if [ -x "$(VENV_PYTHON)" ] || [ -f "$(VENV_PYTHON)" ]; then echo "$(VENV_PYTHON)"; else echo python3; fi)
+
 UV := uv
 PIP := pip
-# Use venv tools if available, otherwise fall back to global
-VENV_BIN := .venv/bin
-PYTEST := $(shell if [ -f $(VENV_BIN)/pytest ]; then echo $(VENV_BIN)/pytest; else echo pytest; fi)
-BLACK := $(shell if [ -f $(VENV_BIN)/black ]; then echo $(VENV_BIN)/black; else echo black; fi)
-RUFF := $(shell if [ -f $(VENV_BIN)/ruff ]; then echo $(VENV_BIN)/ruff; else echo ruff; fi)
-MYPY := $(shell if [ -f $(VENV_BIN)/mypy ]; then echo $(VENV_BIN)/mypy; else echo mypy; fi)
+
+# Prefer venv tools if available, otherwise fall back to global
+PYTEST := $(shell if [ -x "$(VENV_BIN)/pytest" ] || [ -f "$(VENV_BIN)/pytest.exe" ]; then echo "$(VENV_BIN)/pytest"; else echo pytest; fi)
+BLACK  := $(shell if [ -x "$(VENV_BIN)/black"  ] || [ -f "$(VENV_BIN)/black.exe"  ]; then echo "$(VENV_BIN)/black";  else echo black;  fi)
+RUFF   := $(shell if [ -x "$(VENV_BIN)/ruff"   ] || [ -f "$(VENV_BIN)/ruff.exe"   ]; then echo "$(VENV_BIN)/ruff";   else echo ruff;   fi)
+MYPY   := $(shell if [ -x "$(VENV_BIN)/mypy"   ] || [ -f "$(VENV_BIN)/mypy.exe"   ]; then echo "$(VENV_BIN)/mypy";   else echo mypy;   fi)
 
 SRC_DIR := src/matrixllm
 TESTS_DIR := tests
 DIST_DIR := dist
 BUILD_DIR := build
 
-# Colors for pretty output
+# Colors for pretty output (works in most terminals; harmless if unsupported)
 COLOR_RESET := \033[0m
 COLOR_BOLD := \033[1m
 COLOR_GREEN := \033[32m
 COLOR_BLUE := \033[34m
 COLOR_YELLOW := \033[33m
 COLOR_CYAN := \033[36m
+
+# ================================
+# Internal helpers
+# ================================
+
+.PHONY: venv
+venv: ## Create .venv (uv venv if uv exists, else python -m venv)
+	@echo "$(COLOR_BOLD)$(COLOR_GREEN)Creating virtual environment (.venv)...$(COLOR_RESET)"
+	@if [ -d .venv ]; then \
+		echo "$(COLOR_CYAN)✓ .venv already exists$(COLOR_RESET)"; \
+	elif command -v $(UV) >/dev/null 2>&1; then \
+		echo "$(COLOR_CYAN)✓ Using uv venv$(COLOR_RESET)"; \
+		$(UV) venv .venv; \
+	else \
+		echo "$(COLOR_YELLOW)⚠ uv not found; using python -m venv$(COLOR_RESET)"; \
+		python3 -m venv .venv || python -m venv .venv; \
+	fi
+	@echo "$(COLOR_GREEN)✓ Virtual environment ready: .venv$(COLOR_RESET)"
+
+# Fix empty .pth file for editable installs (can happen with uv/pip + src layout)
+.PHONY: fix-pth
+fix-pth:
+	@PTH_FILE=$$(find .venv -type f -name "_matrixllm.pth" 2>/dev/null | head -1); \
+	if [ -n "$$PTH_FILE" ]; then \
+		if [ ! -s "$$PTH_FILE" ]; then \
+			echo "$(COLOR_CYAN)Fixing editable install path...$(COLOR_RESET)"; \
+			echo "$$(pwd)/src" > "$$PTH_FILE"; \
+		fi; \
+	fi
 
 # ================================
 # Help Target (Default)
@@ -51,25 +91,26 @@ help: ## Show this help message
 	@echo ""
 	@echo "$(COLOR_BOLD)Installation:$(COLOR_RESET)"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; /^install/ {printf "  $(COLOR_GREEN)%-20s$(COLOR_RESET) %s\n", $$1, $$2}'
+		awk 'BEGIN {FS = ":.*?## "}; /^install|^venv/ {printf "  $(COLOR_GREEN)%-20s$(COLOR_RESET) %s\n", $$1, $$2}'
 	@echo ""
 	@echo "$(COLOR_BOLD)Development:$(COLOR_RESET)"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; /^(dev|start|mcp|logs|env)/ {printf "  $(COLOR_GREEN)%-20s$(COLOR_RESET) %s\n", $$1, $$2}'
+		awk 'BEGIN {FS = ":.*?## "}; /^(dev|start|start-share|mcp|logs|env)/ {printf "  $(COLOR_GREEN)%-20s$(COLOR_RESET) %s\n", $$1, $$2}'
 	@echo ""
 	@echo "$(COLOR_BOLD)Testing & Quality:$(COLOR_RESET)"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; /^(test|format|lint|type|check)/ {printf "  $(COLOR_GREEN)%-20s$(COLOR_RESET) %s\n", $$1, $$2}'
+		awk 'BEGIN {FS = ":.*?## "}; /^(test|test-all|test-integration|test-cov|test-watch|test-fast|format|lint|type|check)/ {printf "  $(COLOR_GREEN)%-20s$(COLOR_RESET) %s\n", $$1, $$2}'
 	@echo ""
 	@echo "$(COLOR_BOLD)Build & Publish:$(COLOR_RESET)"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; /^(build|publish|clean)/ {printf "  $(COLOR_GREEN)%-20s$(COLOR_RESET) %s\n", $$1, $$2}'
+		awk 'BEGIN {FS = ":.*?## "}; /^(build|publish|publish-test|clean|clean-all)/ {printf "  $(COLOR_GREEN)%-20s$(COLOR_RESET) %s\n", $$1, $$2}'
 	@echo ""
 	@echo "$(COLOR_BOLD)Examples:$(COLOR_RESET)"
-	@echo "  $(COLOR_CYAN)make install$(COLOR_RESET)      # Install MatrixLLM (ultra-fast with uv)"
+	@echo "  $(COLOR_CYAN)make venv$(COLOR_RESET)         # Create .venv"
+	@echo "  $(COLOR_CYAN)make install$(COLOR_RESET)      # Install MatrixLLM (uv if available)"
 	@echo "  $(COLOR_CYAN)make dev$(COLOR_RESET)          # Start in development mode with auto-reload"
-	@echo "  $(COLOR_CYAN)make test$(COLOR_RESET)         # Run all tests"
-	@echo "  $(COLOR_CYAN)make check$(COLOR_RESET)        # Run all quality checks (format, lint, type)"
+	@echo "  $(COLOR_CYAN)make test$(COLOR_RESET)         # Run unit tests"
+	@echo "  $(COLOR_CYAN)make check$(COLOR_RESET)        # Format + lint + type-check"
 	@echo ""
 
 # ================================
@@ -77,60 +118,37 @@ help: ## Show this help message
 # ================================
 
 .PHONY: install
-install: ## Install MatrixLLM (ultra-fast with uv)
-	@echo "$(COLOR_BOLD)$(COLOR_GREEN)Installing MatrixLLM with uv...$(COLOR_RESET)"
+install: venv ## Install MatrixLLM (ultra-fast with uv)
+	@echo "$(COLOR_BOLD)$(COLOR_GREEN)Installing MatrixLLM...$(COLOR_RESET)"
 	@if command -v $(UV) >/dev/null 2>&1; then \
-		echo "$(COLOR_CYAN)✓ Using uv (ultra-fast installation)$(COLOR_RESET)"; \
+		echo "$(COLOR_CYAN)✓ Using uv (inside .venv)$(COLOR_RESET)"; \
 		$(UV) pip install -e .; \
 	else \
-		echo "$(COLOR_YELLOW)⚠ uv not found. Install it with: curl -LsSf https://astral.sh/uv/install.sh | sh$(COLOR_RESET)"; \
-		echo "$(COLOR_CYAN)Falling back to pip...$(COLOR_RESET)"; \
-		$(PIP) install -e .; \
+		echo "$(COLOR_YELLOW)⚠ uv not found. Falling back to pip$(COLOR_RESET)"; \
+		$(VENV_PYTHON) -m pip install -e .; \
 	fi
-	@# Fix empty .pth file for editable installs (common issue with uv/pip + src layout)
-	@if [ -f .venv/lib/python*/site-packages/_matrixllm.pth ]; then \
-		PTH_FILE=$$(find .venv/lib/python*/site-packages/_matrixllm.pth 2>/dev/null | head -1); \
-		if [ -n "$$PTH_FILE" ] && [ ! -s "$$PTH_FILE" ]; then \
-			echo "$(CYAN)Fixing editable install path...$(COLOR_RESET)"; \
-			echo "$$(pwd)/src" > "$$PTH_FILE"; \
-		fi \
-	fi
+	@$(MAKE) fix-pth
 	@echo "$(COLOR_GREEN)✓ Installation complete!$(COLOR_RESET)"
 	@echo "$(COLOR_BOLD)Try: make dev$(COLOR_RESET)"
 
 .PHONY: install-dev
-install-dev: ## Install with development dependencies (testing, linting)
+install-dev: venv ## Install with development dependencies (testing, linting)
 	@echo "$(COLOR_BOLD)$(COLOR_GREEN)Installing MatrixLLM with dev dependencies...$(COLOR_RESET)"
 	@if command -v $(UV) >/dev/null 2>&1; then \
-		echo "$(COLOR_CYAN)✓ Using uv (ultra-fast installation)$(COLOR_RESET)"; \
+		echo "$(COLOR_CYAN)✓ Using uv (inside .venv)$(COLOR_RESET)"; \
 		$(UV) pip install -e ".[dev]"; \
 	else \
-		echo "$(COLOR_YELLOW)⚠ uv not found. Install it with: curl -LsSf https://astral.sh/uv/install.sh | sh$(COLOR_RESET)"; \
-		echo "$(COLOR_CYAN)Falling back to pip...$(COLOR_RESET)"; \
-		$(PIP) install -e ".[dev]"; \
+		echo "$(COLOR_YELLOW)⚠ uv not found. Falling back to pip$(COLOR_RESET)"; \
+		$(VENV_PYTHON) -m pip install -e ".[dev]"; \
 	fi
-	@# Fix empty .pth file for editable installs (common issue with uv/pip + src layout)
-	@if [ -f .venv/lib/python*/site-packages/_matrixllm.pth ]; then \
-		PTH_FILE=$$(find .venv/lib/python*/site-packages/_matrixllm.pth 2>/dev/null | head -1); \
-		if [ -n "$$PTH_FILE" ] && [ ! -s "$$PTH_FILE" ]; then \
-			echo "$(CYAN)Fixing editable install path...$(COLOR_RESET)"; \
-			echo "$$(pwd)/src" > "$$PTH_FILE"; \
-		fi \
-	fi
+	@$(MAKE) fix-pth
 	@echo "$(COLOR_GREEN)✓ Development installation complete!$(COLOR_RESET)"
 
 .PHONY: install-pip
-install-pip: ## Install with pip (fallback if uv unavailable)
+install-pip: venv ## Install with pip (fallback if uv unavailable)
 	@echo "$(COLOR_BOLD)$(COLOR_GREEN)Installing MatrixLLM with pip...$(COLOR_RESET)"
-	$(PIP) install -e .
-	@# Fix empty .pth file for editable installs (common issue with uv/pip + src layout)
-	@if [ -f .venv/lib/python*/site-packages/_matrixllm.pth ]; then \
-		PTH_FILE=$$(find .venv/lib/python*/site-packages/_matrixllm.pth 2>/dev/null | head -1); \
-		if [ -n "$$PTH_FILE" ] && [ ! -s "$$PTH_FILE" ]; then \
-			echo "$(CYAN)Fixing editable install path...$(COLOR_RESET)"; \
-			echo "$$(pwd)/src" > "$$PTH_FILE"; \
-		fi \
-	fi
+	@$(VENV_PYTHON) -m pip install -e .
+	@$(MAKE) fix-pth
 	@echo "$(COLOR_GREEN)✓ Installation complete!$(COLOR_RESET)"
 
 .PHONY: install-uv
@@ -140,8 +158,9 @@ install-uv: ## Install uv package manager
 		echo "$(COLOR_GREEN)✓ uv already installed$(COLOR_RESET)"; \
 		$(UV) --version; \
 	else \
-		curl -LsSf https://astral.sh/uv/install.sh | sh; \
-		echo "$(COLOR_GREEN)✓ uv installed successfully$(COLOR_RESET)"; \
+		echo "$(COLOR_YELLOW)Install uv from: https://astral.sh/uv$(COLOR_RESET)"; \
+		echo "$(COLOR_YELLOW)(Use your OS-specific method; curl installer works on Linux/macOS/WSL.)$(COLOR_RESET)"; \
+		exit 1; \
 	fi
 
 .PHONY: upgrade
@@ -150,7 +169,7 @@ upgrade: ## Upgrade all dependencies to latest versions
 	@if command -v $(UV) >/dev/null 2>&1; then \
 		$(UV) pip install --upgrade -e ".[dev]"; \
 	else \
-		$(PIP) install --upgrade -e ".[dev]"; \
+		$(VENV_PYTHON) -m pip install --upgrade -e ".[dev]"; \
 	fi
 	@echo "$(COLOR_GREEN)✓ Dependencies upgraded!$(COLOR_RESET)"
 
@@ -230,7 +249,7 @@ test-integration: ## Run integration tests (requires Ollama running)
 	@if command -v ollama >/dev/null 2>&1; then \
 		$(PYTEST) $(TESTS_DIR)/integration/ -v -s; \
 	else \
-		echo "$(COLOR_YELLOW)Ollama not found. Install: curl -fsSL https://ollama.com/install.sh | sh$(COLOR_RESET)"; \
+		echo "$(COLOR_YELLOW)Ollama not found. Install from: https://ollama.com$(COLOR_RESET)"; \
 		exit 1; \
 	fi
 
@@ -288,7 +307,7 @@ build: clean ## Build distribution packages
 	@echo "$(COLOR_BOLD)$(COLOR_GREEN)Building MatrixLLM...$(COLOR_RESET)"
 	$(PYTHON) -m build
 	@echo "$(COLOR_GREEN)✓ Build complete: $(DIST_DIR)/$(COLOR_RESET)"
-	@ls -lh $(DIST_DIR)
+	@ls -lh $(DIST_DIR) 2>/dev/null || true
 
 .PHONY: publish
 publish: build ## Publish to PyPI (requires twine)
@@ -315,9 +334,9 @@ clean: ## Clean build artifacts and cache files
 	rm -rf $(BUILD_DIR) $(DIST_DIR) *.egg-info
 	rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
-	find . -type f -name "*.pyc" -delete
-	find . -type f -name "*.pyo" -delete
-	find . -type f -name "*.coverage" -delete
+	find . -type f -name "*.pyc" -delete 2>/dev/null || true
+	find . -type f -name "*.pyo" -delete 2>/dev/null || true
+	find . -type f -name "*.coverage" -delete 2>/dev/null || true
 	@echo "$(COLOR_GREEN)✓ Cleaned!$(COLOR_RESET)"
 
 .PHONY: clean-all
@@ -354,8 +373,9 @@ version: ## Show MatrixLLM version
 .PHONY: info
 info: ## Show system information
 	@echo "$(COLOR_BOLD)$(COLOR_CYAN)System Information:$(COLOR_RESET)"
-	@echo "Python: $$($(PYTHON) --version)"
-	@echo "pip: $$($(PIP) --version | cut -d' ' -f1-2)"
+	@echo "OS: $(UNAME_S)"
+	@echo "Python: $$($(PYTHON) --version 2>/dev/null || true)"
+	@echo "pip: $$($(PIP) --version 2>/dev/null | cut -d' ' -f1-2)"
 	@if command -v $(UV) >/dev/null 2>&1; then \
 		echo "uv: $$($(UV) --version)"; \
 	else \
@@ -376,6 +396,8 @@ docs: ## Open documentation in browser
 		open https://github.com/ruslanmv/matrixllm#readme; \
 	elif command -v xdg-open >/dev/null 2>&1; then \
 		xdg-open https://github.com/ruslanmv/matrixllm#readme; \
+	elif command -v powershell.exe >/dev/null 2>&1; then \
+		powershell.exe -NoProfile -Command "Start-Process 'https://github.com/ruslanmv/matrixllm#readme'"; \
 	else \
 		echo "Visit: https://github.com/ruslanmv/matrixllm#readme"; \
 	fi
@@ -401,7 +423,7 @@ all: clean install-dev check test build ## Do everything (clean, install, check,
 	@echo "$(COLOR_BOLD)$(COLOR_GREEN)✓ All tasks complete!$(COLOR_RESET)"
 
 # Declare all targets as phony (not files)
-.PHONY: help install install-dev install-pip install-uv upgrade \
+.PHONY: help venv fix-pth install install-dev install-pip install-uv upgrade \
         dev start start-share mcp env logs \
         test test-all test-integration test-cov test-watch test-fast \
         format lint type check \
