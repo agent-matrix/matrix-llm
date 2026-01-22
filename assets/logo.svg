@@ -1,0 +1,68 @@
+<svg width="500" height="120" viewBox="0 0 500 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="matrixGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="nodeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Matrix Grid Icon -->
+  <g id="matrix-icon" transform="translate(10, 20)">
+    <!-- Central hub (router) -->
+    <circle cx="45" cy="40" r="12" fill="url(#matrixGradient)"/>
+    <circle cx="45" cy="40" r="6" fill="#ffffff"/>
+
+    <!-- Provider nodes -->
+    <!-- Top node -->
+    <circle cx="45" cy="10" r="8" fill="url(#nodeGradient)">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <!-- Bottom node -->
+    <circle cx="45" cy="70" r="8" fill="url(#nodeGradient)">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+    </circle>
+    <!-- Left node -->
+    <circle cx="15" cy="40" r="8" fill="url(#nodeGradient)">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="1s" repeatCount="indefinite"/>
+    </circle>
+    <!-- Right node -->
+    <circle cx="75" cy="40" r="8" fill="url(#nodeGradient)">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Connection lines -->
+    <line x1="45" y1="18" x2="45" y2="28" stroke="url(#matrixGradient)" stroke-width="2" stroke-linecap="round"/>
+    <line x1="45" y1="52" x2="45" y2="62" stroke="url(#matrixGradient)" stroke-width="2" stroke-linecap="round"/>
+    <line x1="23" y1="40" x2="33" y2="40" stroke="url(#matrixGradient)" stroke-width="2" stroke-linecap="round"/>
+    <line x1="57" y1="40" x2="67" y2="40" stroke="url(#matrixGradient)" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- Diagonal connections -->
+    <line x1="24" y1="19" x2="35" y2="30" stroke="url(#matrixGradient)" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+    <line x1="66" y1="19" x2="55" y2="30" stroke="url(#matrixGradient)" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+    <line x1="24" y1="61" x2="35" y2="50" stroke="url(#matrixGradient)" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+    <line x1="66" y1="61" x2="55" y2="50" stroke="url(#matrixGradient)" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+
+    <!-- Corner nodes (smaller) -->
+    <circle cx="20" cy="15" r="5" fill="url(#matrixGradient)" opacity="0.7"/>
+    <circle cx="70" cy="15" r="5" fill="url(#matrixGradient)" opacity="0.7"/>
+    <circle cx="20" cy="65" r="5" fill="url(#matrixGradient)" opacity="0.7"/>
+    <circle cx="70" cy="65" r="5" fill="url(#matrixGradient)" opacity="0.7"/>
+  </g>
+
+  <!-- Text -->
+  <text x="110" y="52" font-family="'Inter', 'SF Pro Display', -apple-system, system-ui, sans-serif" font-size="38" font-weight="700" fill="#1f2937">
+    Matrix<tspan fill="url(#textGradient)">LLM</tspan>
+  </text>
+  <text x="110" y="78" font-family="'Inter', 'SF Pro Display', -apple-system, system-ui, sans-serif" font-size="14" font-weight="400" fill="#6b7280" letter-spacing="0.5">
+    Multi-Provider LLM Router
+  </text>
+</svg>

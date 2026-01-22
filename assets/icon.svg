@@ -1,0 +1,71 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="matrixGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="nodeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="128" cy="128" r="120" fill="#ffffff"/>
+  <circle cx="128" cy="128" r="120" fill="url(#matrixGradient)" opacity="0.05"/>
+
+  <!-- Matrix network structure -->
+  <g filter="url(#shadow)">
+    <!-- Central hub (router) -->
+    <circle cx="128" cy="128" r="28" fill="url(#matrixGradient)"/>
+    <circle cx="128" cy="128" r="14" fill="#ffffff"/>
+
+    <!-- Provider nodes -->
+    <!-- Top node -->
+    <circle cx="128" cy="55" r="20" fill="url(#nodeGradient)">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <!-- Bottom node -->
+    <circle cx="128" cy="201" r="20" fill="url(#nodeGradient)">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+    </circle>
+    <!-- Left node -->
+    <circle cx="55" cy="128" r="20" fill="url(#nodeGradient)">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="1s" repeatCount="indefinite"/>
+    </circle>
+    <!-- Right node -->
+    <circle cx="201" cy="128" r="20" fill="url(#nodeGradient)">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Connection lines -->
+    <line x1="128" y1="75" x2="128" y2="100" stroke="url(#matrixGradient)" stroke-width="6" stroke-linecap="round"/>
+    <line x1="128" y1="156" x2="128" y2="181" stroke="url(#matrixGradient)" stroke-width="6" stroke-linecap="round"/>
+    <line x1="75" y1="128" x2="100" y2="128" stroke="url(#matrixGradient)" stroke-width="6" stroke-linecap="round"/>
+    <line x1="156" y1="128" x2="181" y2="128" stroke="url(#matrixGradient)" stroke-width="6" stroke-linecap="round"/>
+
+    <!-- Diagonal connections -->
+    <line x1="72" y1="72" x2="105" y2="105" stroke="url(#matrixGradient)" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+    <line x1="184" y1="72" x2="151" y2="105" stroke="url(#matrixGradient)" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+    <line x1="72" y1="184" x2="105" y2="151" stroke="url(#matrixGradient)" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+    <line x1="184" y1="184" x2="151" y2="151" stroke="url(#matrixGradient)" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+
+    <!-- Corner nodes (smaller) -->
+    <circle cx="62" cy="62" r="12" fill="url(#matrixGradient)" opacity="0.7"/>
+    <circle cx="194" cy="62" r="12" fill="url(#matrixGradient)" opacity="0.7"/>
+    <circle cx="62" cy="194" r="12" fill="url(#matrixGradient)" opacity="0.7"/>
+    <circle cx="194" cy="194" r="12" fill="url(#matrixGradient)" opacity="0.7"/>
+  </g>
+</svg>

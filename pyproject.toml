@@ -1,0 +1,114 @@
+[project]
+name = "matrixllm"
+version = "0.2.0"
+description = "MatrixLLM: OpenAI-compatible multi-provider LLM router (OpenRouter-style) with optional relay nodes"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+
+authors = [
+  { name = "Ruslan Magana Vsevolodovna", email = "contact@ruslanmv.com" }
+]
+maintainers = [
+  { name = "Ruslan Magana Vsevolodovna", email = "contact@ruslanmv.com" }
+]
+
+keywords = [
+  "llm",
+  "openai",
+  "anthropic",
+  "gemini",
+  "watsonx",
+  "ollama",
+  "api",
+  "gateway",
+  "router",
+  "multi-provider",
+  "ai",
+  "machine-learning",
+  "self-hosted",
+  "langchain",
+  "chatgpt",
+  "embeddings",
+  "deepseek",
+  "llama",
+  "openrouter",
+]
+
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+  "Framework :: FastAPI",
+]
+
+dependencies = [
+  "anyio",
+  "fastapi>=0.110",
+  "httpx>=0.26",
+  "itsdangerous>=2.1",
+  "pydantic-settings>=2.2",
+  "pydantic>=2.6",
+  "python-dotenv>=1.0",
+  "pyyaml>=6.0",
+  "rich>=13.7",
+  "slowapi",
+  "sqlalchemy",
+  "sqlmodel",
+  "tenacity>=8.2",
+  "typer>=0.12",
+  "uvicorn[standard]>=0.27",
+  "websockets>=12.0",
+]
+notebook=[
+ "ipykernel>=7.1.0",
+  "openai>=2.14.0",
+  "requests>=2.32.5",
+  "python-dotenv>=1.2.1"
+]
+
+[project.urls]
+Homepage = "https://github.com/agent-matrix/matrix-llm"
+Documentation = "https://github.com/agent-matrix/matrix-llm#readme"
+Repository = "https://github.com/agent-matrix/matrix-llm"
+Issues = "https://github.com/agent-matrix/matrix-llm/issues"
+Changelog = "https://github.com/agent-matrix/matrix-llm/releases"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.4",
+  "pytest-cov>=4.1",
+  "pytest-asyncio>=0.21",
+  "black>=23.7",
+  "ruff>=0.0.280",
+  "mypy>=1.4",
+]
+
+[project.scripts]
+matrixllm = "matrixllm.cli.main:app"
+matrixllm-node = "matrixllm.node.cli:app"
+matrixllm-mcp = "matrixllm.mcp.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# --- Hatchling src/ layout ---
+[tool.hatch.build.targets.wheel]
+packages = ["src/matrixllm"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "src/**",
+  "README.md",
+  "LICENSE",
+]
