@@ -1,6 +1,6 @@
 [project]
 name = "matrixllm"
-version = "0.2.0"
+version = "0.1.0"
 description = "MatrixLLM: OpenAI-compatible multi-provider LLM router (OpenRouter-style) with optional relay nodes"
 readme = "README.md"
 requires-python = ">=3.10"
