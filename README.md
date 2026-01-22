@@ -4,7 +4,7 @@
 
 # MatrixLLM
 
-**OpenAI-compatible multi-provider LLM router (OpenRouter-style) with optional relay nodes.**
+**OpenAI-compatible multi-provider LLM router  with optional relay nodes.**
 
 [![PyPI version](https://badge.fury.io/py/matrixllm.svg)](https://badge.fury.io/py/matrixllm)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
