@@ -32,6 +32,20 @@ class Settings(BaseSettings):
     # Also supports OLLAS_API_KEY for ollabridge compatibility
     API_KEYS: str = _get_env_with_ollabridge_fallback("API_KEYS", "OLLAS_API_KEY", "dev-key-change-me")
 
+    # Auth mode:
+    #   - required (default): always require API key (current behavior)
+    #   - local-trust: allow requests without key only from loopback (127.0.0.1/::1)
+    #   - pairing: require pairing token; expose /pair endpoints for local pairing
+    AUTH_MODE: str = os.getenv("AUTH_MODE", "required")
+
+    # Pairing configuration (used when AUTH_MODE=pairing)
+    PAIRING_CODE_TTL_SECONDS: int = int(os.getenv("PAIRING_CODE_TTL_SECONDS", "120"))
+    PAIRING_LOCAL_ONLY: bool = os.getenv("PAIRING_LOCAL_ONLY", "true").lower() in ("1", "true", "yes", "y")
+
+    @property
+    def PAIRING_TOKENS_FILE(self) -> Path:
+        return self.DATA_DIR / "pair_tokens.json"
+
     # Rate limiting (slowapi syntax)
     RATE_LIMIT: str = "60/minute"
 

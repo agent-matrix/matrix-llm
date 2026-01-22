@@ -162,6 +162,41 @@ headers = {"X-API-Key": "sk-matrixllm-xxx"}
 
 Both work identically. The OpenAI SDK uses Method 1 automatically.
 
+### Authentication Modes
+
+MatrixLLM supports three authentication modes for different use cases:
+
+| Mode | Flag | Description |
+|------|------|-------------|
+| `required` | `--auth required` | **Default.** API key required for all requests |
+| `local-trust` | `--auth local-trust` | Localhost requests allowed without key; remote requires key |
+| `pairing` | `--auth pairing` | For MatrixShell integration; uses short-lived pairing codes |
+
+**Examples:**
+
+```bash
+# Default mode (API key required)
+matrixllm start
+
+# Trust localhost connections (no key needed from 127.0.0.1)
+matrixllm start --auth local-trust
+
+# Pairing mode for MatrixShell (displays pairing code)
+matrixllm start --auth pairing --host 127.0.0.1
+```
+
+**Pairing mode** is designed for seamless local integration with [MatrixShell](https://github.com/agent-matrix/matrixshell):
+
+```
+╭─────────────────── Gateway Ready ───────────────────╮
+│ ✅ MatrixLLM is Online                              │
+│                                                      │
+│ Auth:          pairing                              │
+│ Pairing code:  483-921                              │
+│ Enter this code in MatrixShell to pair.             │
+╰──────────────────────────────────────────────────────╯
+```
+
 ---
 
 ## OllaBridge Compatibility
@@ -364,6 +399,10 @@ matrixllm-node join \
 | `/v1/models` | GET | Yes | List available models |
 | `/v1/chat/completions` | POST | Yes | Generate chat responses |
 | `/v1/embeddings` | POST | Yes | Generate text embeddings |
+| `/pair/info` | GET | No* | Get pairing status (pairing mode only) |
+| `/pair` | POST | No* | Submit pairing code for token (pairing mode only) |
+
+*Pairing endpoints are only available in `--auth pairing` mode and restricted to localhost by default.
 
 ### Quick Examples
 
@@ -392,6 +431,10 @@ matrixllm start
 
 # Start with options
 matrixllm start --port 8080 --model llama3
+
+# Start with different auth modes
+matrixllm start --auth local-trust    # Trust localhost
+matrixllm start --auth pairing        # Pairing mode for MatrixShell
 
 # Show LAN URLs (for other devices on your network)
 matrixllm start --lan
@@ -423,6 +466,11 @@ CORS_ORIGINS=http://localhost:5173,http://localhost:3000
 
 # === Authentication ===
 API_KEYS=dev-key-change-me    # Comma-separated API keys
+AUTH_MODE=required            # required | local-trust | pairing
+
+# === Pairing (for MatrixShell) ===
+PAIRING_CODE_TTL_SECONDS=120  # Pairing code expiry time
+PAIRING_LOCAL_ONLY=true       # Only allow pairing from localhost
 
 # === Rate Limiting ===
 RATE_LIMIT=60/minute          # Requests per minute
